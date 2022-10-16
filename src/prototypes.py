@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from feature_attribution import calculate_very_basic_feature_attribution
+from src import feature_attribution as ft
 
 def create_prototypes(anomaly: int, anomaly_data: dict):
     sensors = anomaly_data["sensors"]
@@ -11,7 +11,7 @@ def create_prototypes(anomaly: int, anomaly_data: dict):
     one_week = np.timedelta64(7, 'D')
     two_weeks = np.timedelta64(14, 'D')
     if anomaly_data["algo"] == 2:
-        feature_attribution = calculate_very_basic_feature_attribution(anomaly, anomaly_data)
+        feature_attribution = ft.calculate_very_basic_feature_attribution(anomaly, anomaly_data)
         sensor = feature_attribution.index(max(feature_attribution))
     else:
         sensor = 0
