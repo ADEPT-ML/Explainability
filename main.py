@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Body, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.middleware.cors import CORSMiddleware
 from src import schema, feature_attribution, prototypes
 
 app = FastAPI()
