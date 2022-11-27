@@ -3,15 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from src import schema, feature_attribution, prototypes
 
 app = FastAPI()
-origins = ["*"]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# origins = ["*"]
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 
 @app.get(
@@ -49,11 +50,10 @@ async def root():
 
 @app.post(
     "/prototypes",
-    name="Building Sensors",
-    summary="Returns a list of sensors of a specified building",
-    description="Returns all sensors available for the building specified through the parameter.\
-        The response will include a list of the sensors with their type, desc and unit.",
-    response_description="List of sensors.",
+    name="Get prototypes for a selected anomaly",
+    summary="Get the prototypes for a selected anomaly",
+    description="Returns a dict with two prototypes and the original anomaly.",
+    response_description="Dict of prototypes and anomalies.",
     responses={
         200: {
             "content": {
@@ -91,9 +91,9 @@ async def root():
             },
         }
     },
-    tags=["Buildings and Sensors"]
+    tags=["Prototypes"]
 )
-def calculate_anomalies(
+def calculate_prototypes(
     anomaly: int = Query(
         description="Query parameter to select the anomaly.",
         example=0
@@ -103,14 +103,17 @@ def calculate_anomalies(
         description="A dict of the output of anomaly-detection",
         example={
             "payload": {
-                "deep-error": [0.03145960019416866, 0.024359986113175414, 0.023060245303469007],
+                "deep-error": [
+                    [0.01572980009, 0.01217999305, 0.01153012265],
+                    [0.01572980009, 0.01217999305, 0.01153012265]
+                ],
                 "dataframe": {
                     "Wasser.1 Diff": {
                         "2020-07-31T20:00:00": 1.4,
                         "2020-07-31T20:15:00": 1.4,
                         "2020-07-31T20:30:00": 1.3
                     },
-                    "Electricity.3 Diff": {
+                    "Electricity.1 Diff": {
                         "2020-07-31T20:00:00": 1.5,
                         "2020-07-31T20:15:00": 1.6,
                         "2020-07-31T20:30:00": 1.7
@@ -142,12 +145,91 @@ def calculate_anomalies(
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
 
-@app.post("/feature-attribution")
-def calculate_anomalies(anomaly: int, payload = Body(..., embed=True)):
-    attribution = feature_attribution.calculate_very_basic_feature_attribution(anomaly - 1, payload)
-    attribution = [{"name": payload["sensors"][i], "percent": e} for i, e in enumerate(attribution)]
-    # attribution = sorted(attribution, key=lambda x: x["percent"], reverse=True)
-    return {"attribution": attribution}
-
-
+@app.post(
+    "/feature-attribution",
+    name="Get attribution of features for a selected anomaly",
+    summary="Get the attribution of features for a selected anomaly",
+    description="Returns a a list with the names and percentages of the feature attribution.",
+    response_description="A list with the names and percentages of feature attribution.",
+    responses={
+        200: {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "attribution": [
+                            {'name': 'Wasser.1 Diff', 'percent': 82.65603968422548}, 
+                            {'name': 'Elektrizität.1 Diff', 'percent': 17.343960315774527}
+                        ]                       
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Payload can not be empty.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Payload can not be empty"}
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Internal server error"}
+                }
+            },
+        }
+    },
+    tags=["Attributions"]
+)  
+def calculate_attribution(
+    anomaly: int = Query(
+        description="Query parameter to select the anomaly.",
+        example=0
+    ),
+    payload=Body(
+        default=...,
+        description="A dict of the output of anomaly-detection",
+        example={
+            "payload": {
+                "deep-error": [
+                    [0.01572980009, 0.01217999305, 0.01153012265],
+                    [0.01572980009, 0.01217999305, 0.01153012265]
+                ],
+                "dataframe": {
+                    "Wasser.1 Diff": {
+                        "2020-07-31T20:00:00": 1.4,
+                        "2020-07-31T20:15:00": 1.4,
+                        "2020-07-31T20:30:00": 1.3
+                    },
+                    "Electricity.1 Diff": {
+                        "2020-07-31T20:00:00": 1.5,
+                        "2020-07-31T20:15:00": 1.6,
+                        "2020-07-31T20:30:00": 1.7
+                    }
+                },
+                "sensors": ["Wasser.1 Diff", "Elektrizität.1 Diff"],
+                "algo": 2,
+                "timestamps": ["2020-03-14T11:00:00", "2020-03-14T11:15:00", "2020-03-14T11:30:00"],
+                "anomalies": [
+                    {"timestamp": "2021-12-21T09:45:00", "type": "Area"},
+                    {"timestamp": "2021-12-22T09:45:00", "type": "Area"}
+                ],
+                "error": [0.03145960019416866, 0.024359986113175414, 0.023060245303469007]
+            }
+        },
+        embed=True
+    )
+):
+    try:
+        attribution = feature_attribution.calculate_very_basic_feature_attribution(anomaly - 1, payload)
+        attribution = [{"name": payload["sensors"][i], "percent": e} for i, e in enumerate(attribution)]
+        # attribution = sorted(attribution, key=lambda x: x["percent"], reverse=True)
+        return {"attribution": attribution}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
 schema.custom_openapi(app)
