@@ -14,6 +14,17 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+async def root():
+    """Root API endpoint that lists all available API endpoints.
+
+    Returns:
+        A complete list of all possible API endpoints.
+    """
+    route_filter = ["openapi", "swagger_ui_html", "swagger_ui_redirect", "redoc_html"]
+    url_list = [{"path": route.path, "name": route.name} for route in app.routes if route.name not in route_filter]
+    return url_list
+
 @app.post("/prototypes")
 def calculate_anomalies(anomaly: int, payload = Body(..., embed=True)):
     a, b, c = prototypes.create_prototypes(anomaly - 1, payload)
@@ -30,31 +41,3 @@ def calculate_anomalies(anomaly: int, payload = Body(..., embed=True)):
 
 
 schema.custom_openapi(app)
-
-@app.get(
-    "/",
-    name="Root path",
-    summary="Returns the routes available through the API",
-    description="Returns a route list for easier use of API through HATEOAS",
-    response_description="List of urls to all available routes",
-    responses={
-        200: {
-            "content": {
-                "application/json": {
-                    "example": {
-                        "payload": [
-                            {
-                                "path": "/examplePath",
-                                "name": "example route"
-                            }
-                        ]
-                    }
-                }
-            },
-        }
-    }
-)
-async def root():
-    url_list = [{"path": route.path, "name": route.name}
-                for route in app.routes]
-    return url_list
