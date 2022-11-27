@@ -74,14 +74,22 @@ async def root():
                 }
             },
         },
-        404: {
-            "description": "Building not found.",
+        400: {
+            "description": "Payload can not be empty.",
             "content": {
                 "application/json": {
-                    "example": {"detail": "Building not found"}
+                    "example": {"detail": "Payload can not be empty"}
                 }
             },
         },
+        500: {
+            "description": "Internal server error.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Internal server error"}
+                }
+            },
+        }
     },
     tags=["Buildings and Sensors"]
 )
@@ -122,6 +130,8 @@ def calculate_anomalies(
     )
 ):
     try:
+        if not payload:
+            raise HTTPException(status_code=400, detail="Payload can not be empty")
         a, b, c = prototypes.create_prototypes(anomaly - 1, payload)
         return {"prototypes": {"prototype a": a,
                            "prototype b": b,
