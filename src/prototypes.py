@@ -1,8 +1,21 @@
+"""Contains all functions related to the prototype creation"""
 import numpy as np
 import pandas as pd
 from src import feature_attribution as ft
 
 def create_prototypes(anomaly: int, anomaly_data: dict):
+    """Creates prototypes for the specified anomaly.
+
+    Generates two similar timeframes based on the surrounding weeks.
+    Adds the timeframe of the anomaly itself.
+
+    Args:
+        anomaly: The ID of the anomaly.
+        anomaly_data: The output of the anomaly detection.
+
+    Returns:
+        Two created prototypes and the anomaly with the same timeframe.
+    """
     sensors = anomaly_data["sensors"]
     anomaly_timestamp = np.datetime64(anomaly_data["timestamps"][anomaly_data["anomalies"][anomaly]["index"]])
     df = pd.DataFrame(anomaly_data["dataframe"])
