@@ -1,20 +1,10 @@
 """The main module with all API definitions of the Explainability service"""
 from fastapi import FastAPI, Body, HTTPException, Query
-# from fastapi.middleware.cors import CORSMiddleware
+
 from src import schema, feature_attribution, prototypes
 
+
 app = FastAPI()
-
-
-# origins = ["*"]
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
 
 
 @app.get(
