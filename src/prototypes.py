@@ -123,8 +123,7 @@ def create_averaged_prototypes_dynamic(anomaly: int, anomaly_data: dict, padding
 
 def fetch_sensor(anomaly, anomaly_data):
     if anomaly_data["deep-error"]:
-        feature_attribution = ft.calculate_very_basic_feature_attribution(
-            anomaly, anomaly_data)
+        feature_attribution = ft.calculate_very_basic_feature_attribution(anomaly, anomaly_data)
         return feature_attribution.index(max(feature_attribution))
     else:
         return 0
