@@ -90,23 +90,25 @@ def create_averaged_prototypes_dynamic(anomaly: int, anomaly_data: dict, padding
     
     time_start = (anomaly_timestamp - time_padding).astype(object)
     weekday_start = time_start.weekday()
+    time_start_minutes = (time_start.hour+(weekday_start*24))*60+time_start.minute
     time_end = (anomaly_timestamp + anomaly_length + time_padding).astype(object)
     weekday_end = time_end.weekday()
+    time_end_minutes = (time_end.hour+(weekday_end*24))*60+time_end.minute
     
     # mask data with the same weekday(s) in the same period of time +- timedelta
     a = df.loc[
         ((weekday_end >= weekday_start) &
             ((df.index.weekday >= weekday_start) & 
              (df.index.weekday <= weekday_end) &
-            ((df.index.hour+(df.index.weekday*24))*60+df.index.minute >= (time_start.hour+(weekday_start*24))*60+time_start.minute) &
-            ((df.index.hour+(df.index.weekday*24))*60+df.index.minute <= (time_end.hour+(weekday_end*24))*60+time_end.minute )))
+             (((df.index.hour+(df.index.weekday*24))*60+df.index.minute >= time_start_minutes) &
+              ((df.index.hour+(df.index.weekday*24))*60+df.index.minute <= time_end_minutes))))
         |
         ((time_start.isocalendar().week < time_end.isocalendar().week) &  # TODO: year can also be different
             (((df.index.weekday >= weekday_start) &
-             ((df.index.hour+(df.index.weekday*24))*60+df.index.minute >= (time_start.hour+(weekday_start*24))*60+time_start.minute))
+             ((df.index.hour+(df.index.weekday*24))*60+df.index.minute >= time_start_minutes))
             |
-             (((df.index.weekday <= weekday_end) &
-              ((df.index.hour+(df.index.weekday*24))*60+df.index.minute <= (time_end.hour+(weekday_end*24))*60+time_end.minute))))),
+            (((df.index.weekday <= weekday_end) &
+             ((df.index.hour+(df.index.weekday*24))*60+df.index.minute <= time_end_minutes))))),
         [selected_sensor]
     ]
     
