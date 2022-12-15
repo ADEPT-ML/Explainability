@@ -37,33 +37,48 @@ def create_local_prototypes(anomaly: int, anomaly_data: dict):
     return [e for e in a[selected_sensor]], [e for e in b[selected_sensor]], [e for e in c[selected_sensor]]
 
 
-def create_averaged_prototypes(anomaly: int, anomaly_data: dict):
-    padding = 4
+def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 4):
+    """Creates averaged prototypes for the specified anomaly.
+
+    The first two additional timeframes act as an example based explanation for the expected behaviour.
+    Fetches the time resolution of the data and supports all resolutions that can represent an hour without a remainder.
+    Uses an index based approach to get all related timeframes.
+    Calculates one window each with mean and median values.
+
+    Args:
+        anomaly: The ID of the anomaly (starting at 0).
+        anomaly_data: The output of the anomaly detection.
+        padding: The timedelta (in "h") to be used as padding for extending the resulting timeframe on both sides.
+
+    Returns:
+        Two averaged prototypes (mean and median) and the anomaly with the same timeframe.
+    """
+    df = pd.DataFrame(anomaly_data["dataframe"])
+    frequency = np.timedelta64(1, "h") // (np.datetime64(df.index[1]) - np.datetime64(df.index[0]))
+    padding *= frequency
+    week_length = 168 * frequency
     anomaly_index = anomaly_data["anomalies"][anomaly]["index"]
     anomaly_length = anomaly_data["anomalies"][anomaly]["length"]
-    low_bound = orig_low_bound = anomaly_index - padding
-    low_bound %= 672
+    anomaly_low_bound = anomaly_index - padding
+    low_bound = anomaly_low_bound % week_length
     w_length = 2 * padding + anomaly_length
-    indices = range(low_bound, len(anomaly_data["timestamps"]) - w_length, 672)
-
     sensor = fetch_sensor(anomaly, anomaly_data)
-    df = pd.DataFrame(anomaly_data["dataframe"]).loc[:, anomaly_data["sensors"][sensor]]
-    windows = np.swapaxes(np.array([df.iloc[i:i + w_length].to_numpy() for i in indices]), 0, 1)
+
+    df = df.loc[:, anomaly_data["sensors"][sensor]]
+    indices = range(low_bound, len(anomaly_data["timestamps"]) - w_length, week_length)
+    windows = np.swapaxes(np.array([df.iloc[i:i + w_length] for i in indices]), 0, 1)
 
     avg_window = [np.average(e) for e in windows]
     median_window = [np.median(e) for e in windows]
-    anomaly_window = df.iloc[orig_low_bound:orig_low_bound + w_length]
-    return avg_window, median_window, [e for e in anomaly_window]
+    anomaly_window = df.iloc[anomaly_low_bound:anomaly_low_bound + w_length].tolist()
+    return avg_window, median_window, anomaly_window
 
 
-def create_averaged_prototypes_dynamic(anomaly: int, anomaly_data: dict, padding: int = 6):
+def create_averaged_prototypes_mask(anomaly: int, anomaly_data: dict, padding: int = 4):
     """Creates averaged prototypes for the specified anomaly.
 
     A mask with similar timeframes (based on the day and time) is applied to the dataframe
-    and the remaining values are averaged to create a explanatory example for expected behavior
-    
-    Similar to `create_averaged_prototypes` but also adapts dynamically to different resolutions 
-    (15min, 30min and so on) in the time series
+    and the remaining values are averaged to create an explanatory example for expected behavior
 
     Args:
         anomaly: The ID of the anomaly.
@@ -124,6 +139,17 @@ def create_averaged_prototypes_dynamic(anomaly: int, anomaly_data: dict, padding
 
 
 def fetch_sensor(anomaly, anomaly_data):
+    """Determines the sensor for the prototype creation.
+
+    If no values for the feature attribution are present the first sensor will be returned.
+
+    Args:
+        anomaly: The ID of the anomaly (starting at 0).
+        anomaly_data: The output of the anomaly detection.
+
+    Returns:
+        The sensor responsible for the anomaly or the first if no feature attribution data is present.
+    """
     if anomaly_data["deep-error"]:
         feature_attribution = ft.calculate_very_basic_feature_attribution(anomaly, anomaly_data)
         return feature_attribution.index(max(feature_attribution))
