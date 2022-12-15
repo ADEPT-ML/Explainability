@@ -56,9 +56,75 @@ def create_averaged_prototypes(anomaly: int, anomaly_data: dict):
     return avg_window, median_window, [e for e in anomaly_window]
 
 
+def create_averaged_prototypes_dynamic(anomaly: int, anomaly_data: dict, padding: int = 6):
+    """Creates averaged prototypes for the specified anomaly.
+
+    A mask with similar timeframes (based on the day and time) is applied to the dataframe
+    and the remaining values are averaged to create a explanatory example for expected behavior
+    
+    Similar to `create_averaged_prototypes` but also adapts dynamically to different resolutions 
+    (15min, 30min and so on) in the time series
+
+    Args:
+        anomaly: The ID of the anomaly.
+        anomaly_data: The output of the anomaly detection.
+        padding (default=4): The timedelta (in 'h') to be used as padding for extending the returned timeframe. 
+
+    Returns:
+        Two averaged prototypes (mean and median) and the anomaly with the same timeframe.
+    """
+    sensors = anomaly_data["sensors"]
+    anomaly_timestamp = np.datetime64(anomaly_data["timestamps"][anomaly_data["anomalies"][anomaly]["index"]])
+    anomaly_span = anomaly_data["anomalies"][anomaly]["length"]
+    
+    df = pd.DataFrame(anomaly_data["dataframe"])
+    df.index = pd.to_datetime(df.index.values)
+
+    # calculate the timedelta between two tuples and multiply by anomaly-length to get timeframe of anomaly
+    time_diff = df.iloc[:2].index.to_series().diff().astype('timedelta64[m]')[-1]
+    anomaly_length = ((anomaly_span-1)*time_diff).astype('timedelta64[m]')
+    time_padding = np.timedelta64(padding, 'h')
+
+    sensor = fetch_sensor(anomaly, anomaly_data)
+    selected_sensor = sensors[sensor]
+    
+    time_start = (anomaly_timestamp - time_padding).astype(object)
+    weekday_start = time_start.weekday()
+    time_end = (anomaly_timestamp + anomaly_length + time_padding).astype(object)
+    weekday_end = time_end.weekday()
+    
+    # mask data with the same weekday(s) in the same period of time +- timedelta
+    a = df.loc[
+        ((weekday_end >= weekday_start) &
+            ((df.index.weekday >= weekday_start) & 
+             (df.index.weekday <= weekday_end) &
+            ((df.index.hour+(df.index.weekday*24))*60+df.index.minute >= (time_start.hour+(weekday_start*24))*60+time_start.minute) &
+            ((df.index.hour+(df.index.weekday*24))*60+df.index.minute <= (time_end.hour+(weekday_end*24))*60+time_end.minute )))
+        |
+        ((time_start.isocalendar().week < time_end.isocalendar().week) &  # TODO: year can also be different
+            (((df.index.weekday >= weekday_start) &
+             ((df.index.hour+(df.index.weekday*24))*60+df.index.minute >= (time_start.hour+(weekday_start*24))*60+time_start.minute))
+            |
+             (((df.index.weekday <= weekday_end) &
+              ((df.index.hour+(df.index.weekday*24))*60+df.index.minute <= (time_end.hour+(weekday_end*24))*60+time_end.minute))))),
+        [selected_sensor]
+    ]
+    
+    np_a = a.to_numpy()
+    len_frame = 2 * padding * (np.timedelta64(1, 'h') // time_diff.astype('timedelta64[m]')) + anomaly_span
+    np_a = np.swapaxes(np.reshape(np_a, (len(np_a) // len_frame, len_frame)), 0, 1)
+    
+    a = [np.average(e) for e in np_a]
+    b = [np.median(e) for e in np_a]
+    c = df.loc[((anomaly_timestamp - time_padding) <= df.index) & (df.index <= (anomaly_timestamp + anomaly_length + time_padding)), [selected_sensor]]
+
+    return a, b, [e for e in c[selected_sensor]]
+
+
 def fetch_sensor(anomaly, anomaly_data):
     if anomaly_data["deep-error"]:
-        feature_attribution = ft.calculate_very_basic_feature_attribution(anomaly, anomaly_data)
+        feature_attribution = ft.calculate_very_basic_feature_attribution(
+            anomaly, anomaly_data)
         return feature_attribution.index(max(feature_attribution))
     else:
         return 0
