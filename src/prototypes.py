@@ -151,7 +151,7 @@ def fetch_sensor(anomaly, anomaly_data):
         The sensor responsible for the anomaly or the first if no feature attribution data is present.
     """
     if anomaly_data["deep-error"]:
-        feature_attribution = ft.calculate_very_basic_feature_attribution(anomaly, anomaly_data)
+        feature_attribution = ft.calculate_averaged_feature_attribution(anomaly, anomaly_data)
         return feature_attribution.index(max(feature_attribution))
     else:
         return 0
