@@ -70,7 +70,10 @@ def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 
 
     avg_window = [np.average(e) for e in windows]
     median_window = [np.median(e) for e in windows]
-    anomaly_window = df.iloc[anomaly_low_bound:anomaly_low_bound + w_length].tolist()
+    anomaly_window = [None] * abs(anomaly_low_bound) if anomaly_low_bound < 0 else []
+    anomaly_window.extend(df.iloc[max(anomaly_low_bound, 0):min(anomaly_low_bound + w_length, len(df.index))].tolist())
+    if anomaly_low_bound + w_length > len(df.index):
+        anomaly_window.extend([None] * anomaly_low_bound + w_length - len(df.index))
     return avg_window, median_window, anomaly_window
 
 
