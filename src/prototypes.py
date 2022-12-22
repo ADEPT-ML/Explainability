@@ -5,7 +5,7 @@ import pandas as pd
 from . import feature_attribution as ft
 
 
-def create_local_prototypes(anomaly: int, anomaly_data: dict):
+def create_local_prototypes(anomaly: int, anomaly_data: dict) -> tuple[list, list, list]:
     """Creates prototypes for the specified anomaly.
 
     Generates two similar timeframes based on the surrounding weeks.
@@ -37,7 +37,7 @@ def create_local_prototypes(anomaly: int, anomaly_data: dict):
     return [e for e in a[selected_sensor]], [e for e in b[selected_sensor]], [e for e in c[selected_sensor]]
 
 
-def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 4):
+def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 4) -> tuple[list, list, list]:
     """Creates averaged prototypes for the specified anomaly.
 
     The first two additional timeframes act as an example based explanation for the expected behaviour.
@@ -77,7 +77,7 @@ def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 
     return avg_window, median_window, anomaly_window
 
 
-def create_averaged_prototypes_mask(anomaly: int, anomaly_data: dict, padding: int = 4):
+def create_averaged_prototypes_mask(anomaly: int, anomaly_data: dict, padding: int = 4) -> tuple[list, list, list]:
     """Creates averaged prototypes for the specified anomaly.
 
     A mask with similar timeframes (based on the day and time) is applied to the dataframe
@@ -141,7 +141,7 @@ def create_averaged_prototypes_mask(anomaly: int, anomaly_data: dict, padding: i
     return a, b, [e for e in c[selected_sensor]]
 
 
-def fetch_sensor(anomaly, anomaly_data):
+def fetch_sensor(anomaly, anomaly_data) -> int:
     """Determines the sensor for the prototype creation.
 
     If no values for the feature attribution are present the first sensor will be returned.
