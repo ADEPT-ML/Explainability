@@ -143,7 +143,7 @@ def calculate_prototypes(
     try:
         if not payload:
             raise HTTPException(status_code=400, detail="Payload can not be empty")
-        a, b, c = prototypes.create_prototypes(anomaly - 1, payload)
+        a, b, c = prototypes.create_shapelets(anomaly - 1, payload)
         return {"prototypes": {"prototype a": a,
                                "prototype b": b,
                                "anomaly": c}}
