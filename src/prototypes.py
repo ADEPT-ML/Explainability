@@ -60,6 +60,41 @@ def find_matrix_profile(building_sensor: pd.Series, window: int):
     return matrixProfile
 
 
+
+
+
+
+
+def find_min_distance(matrixProfile: np.ndarray):
+    """Searches for the top 5 max values in matrix profile.
+
+    Args:
+        matrixProfile (np.ndarray): Array with matrix profile.
+
+    Returns:
+        Array of indexes of the top 5 values with the most difference.
+    """
+    indexes_min_dist = []
+
+    for i in range(5):
+        currmin = float('inf')
+        currminid = 0
+        for index, value in enumerate(matrixProfile):
+            if value < currmin:
+                currmin = value
+                currminid = index
+        matrixProfile[currminid] = float('inf')
+        indexes_min_dist.append(currminid)
+        
+    return indexes_min_dist
+
+
+
+
+
+
+
+
 def find_max_distance(matrixProfile: np.ndarray):
     """Searches for the top 5 max values in matrix profile.
 
