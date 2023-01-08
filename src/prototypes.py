@@ -191,12 +191,7 @@ def create_local_prototypes(anomaly: int, anomaly_data: dict) -> tuple[list, lis
     time_delta = np.timedelta64(4, 'h')
     one_week = np.timedelta64(7, 'D')
     two_weeks = np.timedelta64(14, 'D')
-    
-    if anomaly_data["algo"] == 2:
-        feature_attribution = ft.calculate_very_basic_feature_attribution(anomaly, anomaly_data)
-        sensor = feature_attribution.index(max(feature_attribution))
-    else:
-        sensor = 0
+    sensor = fetch_sensor(anomaly, anomaly_data)
     selected_sensor = sensors[sensor]
     if anomaly_timestamp - two_weeks > df.index[0]:
         a = df.loc[((anomaly_timestamp - two_weeks - time_delta) <= df.index) & (df.index <= (anomaly_timestamp - two_weeks + time_delta)), [selected_sensor]]
@@ -205,10 +200,8 @@ def create_local_prototypes(anomaly: int, anomaly_data: dict) -> tuple[list, lis
         a = df.loc[((anomaly_timestamp + two_weeks - time_delta) <= df.index) & (df.index <= (anomaly_timestamp + two_weeks + time_delta)), [selected_sensor]]
         b = df.loc[((anomaly_timestamp + one_week - time_delta) <= df.index) & (df.index <= (anomaly_timestamp + one_week + time_delta)), [selected_sensor]]
     c = df.loc[((anomaly_timestamp - time_delta) <= df.index) & (df.index <= (anomaly_timestamp + time_delta)), [selected_sensor]]
-    x = [e for e in a[selected_sensor]]
-    y = [e for e in b[selected_sensor]]
-    z = [e for e in c[selected_sensor]]
-    return x, y, z
+    return [e for e in a[selected_sensor]], [e for e in b[selected_sensor]], [e for e in c[selected_sensor]]
+
 
 def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 4) -> tuple[list, list, list]:
     """Creates averaged prototypes for the specified anomaly.
@@ -232,9 +225,6 @@ def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 
     week_length = 168 * frequency
     anomaly_index = anomaly_data["anomalies"][anomaly]["index"]
     anomaly_length = anomaly_data["anomalies"][anomaly]["length"]
-    
-    print("anomaly_length", anomaly_length)
-    
     anomaly_low_bound = anomaly_index - padding
     low_bound = anomaly_low_bound % week_length
     w_length = 2 * padding + anomaly_length
@@ -243,23 +233,11 @@ def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 
     df = df.loc[:, anomaly_data["sensors"][sensor]]
     indices = range(low_bound, len(anomaly_data["timestamps"]) - w_length, week_length)
     windows = np.swapaxes(np.array([df.iloc[i:i + w_length] for i in indices]), 0, 1)
-    
-    print("anomaly_low_bound", anomaly_low_bound)
-    print("low_bound", low_bound)
-    print("w_length", w_length)
-    print("sensor", sensor)
-    print("windows", windows)
-    print(type(windows))
 
     avg_window = [np.average(e) for e in windows]
     median_window = [np.median(e) for e in windows]
     anomaly_window = [None] * abs(anomaly_low_bound) if anomaly_low_bound < 0 else []
     anomaly_window.extend(df.iloc[max(anomaly_low_bound, 0):min(anomaly_low_bound + w_length, len(df.index))].tolist())
-    
-    print("anomaly_window", avg_window)
-    print("median_window", median_window)
-    print("anomaly_window", anomaly_window)
-    
     if anomaly_low_bound + w_length > len(df.index):
         anomaly_window.extend([None] * anomaly_low_bound + w_length - len(df.index))
     return avg_window, median_window, anomaly_window
