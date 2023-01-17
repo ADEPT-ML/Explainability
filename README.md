@@ -52,7 +52,7 @@ There are two arguments passed to the `/prototypes` and `/feature-attribution` e
   requested.
   - `anomaly_data` __object__ - The output of the anomaly detection for the given sensor combination
     with all important data. The following example abbreviates lists by `[...]`.
-    ```json
+    ```
     {
         "deep-error": [
           [0.01572980009, 0.01217999305, 0.01153012265],
