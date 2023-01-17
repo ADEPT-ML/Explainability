@@ -111,4 +111,4 @@ There are two arguments passed to the `/prototypes` and `/feature-attribution` e
    the order of the features.
 
 
-Copyright © ADEPT ML, TU Dortmund 2022
+Copyright © ADEPT ML, TU Dortmund 2023
