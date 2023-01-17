@@ -50,35 +50,38 @@ There are two arguments passed to the `/prototypes` and `/feature-attribution` e
 
 - `anomaly` __int__ - The index of the anomaly for which the prototypes or attribution are currently
   requested.
-- `anomaly_data` __object__ - The output of the anomaly detection for the given sensor combination
-  with all important data. The following example abbreviates lists by `[...]`.
-  ```json
-  "deep-error": [
-    [0.01572980009, 0.01217999305, 0.01153012265],
-    [0.01572980009, 0.01217999305, 0.01153012265],
-    [...]
-  ],
-  "dataframe": {
-    "Wasser.1 Diff": {
-        "2020-07-31T20:00:00": 1.4,
-        "2020-07-31T20:15:00": 1.4,
-        [...]
-    },
-    "Electricity.1 Diff": {
-        "2020-07-31T20:00:00": 1.5,
-        "2020-07-31T20:15:00": 1.6,
-        [...]
+  - `anomaly_data` __object__ - The output of the anomaly detection for the given sensor combination
+    with all important data. The following example abbreviates lists by `[...]`.
+    ```json
+    {
+        "deep-error": [
+          [0.01572980009, 0.01217999305, 0.01153012265],
+          [0.01572980009, 0.01217999305, 0.01153012265],
+          [...]
+        ],
+        "dataframe": {
+          "Wasser.1 Diff": {
+              "2020-07-31T20:00:00": 1.4,
+              "2020-07-31T20:15:00": 1.4,
+              [...]
+          },
+          "Electricity.1 Diff": {
+              "2020-07-31T20:00:00": 1.5,
+              "2020-07-31T20:15:00": 1.6,
+              [...]
+          }
+        },
+        "sensors": ["Wasser.1 Diff", "Elektrizität.1 Diff"],
+        "algo": 2,
+        "timestamps": ["2020-03-14T11:00:00", "2020-03-14T11:15:00", [...]],
+        "anomalies": [
+          {"timestamp": "2021-12-21T09:45:00", "type": "Area"},
+          {"timestamp": "2021-12-22T09:45:00", "type": "Area"},
+          [...]
+        ],
+        "error": [0.03145960019416866, 0.024359986113175414, [...]]
     }
-  },
-  "sensors": ["Wasser.1 Diff", "Elektrizität.1 Diff"],
-  "algo": 2,
-  "timestamps": ["2020-03-14T11:00:00", "2020-03-14T11:15:00", [...]],
-  "anomalies": [
-    {"timestamp": "2021-12-21T09:45:00", "type": "Area"},
-    {"timestamp": "2021-12-22T09:45:00", "type": "Area"},
-    [...]
-  ],
-  "error": [0.03145960019416866, 0.024359986113175414, [...]]```
+    ```
 
 ### Adding an explainability method
 
