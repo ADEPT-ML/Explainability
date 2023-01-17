@@ -240,7 +240,7 @@ def calculate_attribution(
         The calculated feature attribution for the specified anomaly.
     """
     try:
-        attribution = feature_attribution.calculate_averaged_feature_attribution(anomaly - 1, payload)
+        attribution = feature_attribution.calculate_shap_feature_attribution(anomaly - 1, payload)
         attribution = [{"name": payload["sensors"][i], "percent": e} for i, e in enumerate(attribution)]
         # attribution = sorted(attribution, key=lambda x: x["percent"], reverse=True)
         return {"attribution": attribution}
