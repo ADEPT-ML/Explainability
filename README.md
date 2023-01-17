@@ -85,7 +85,7 @@ There are two arguments passed to the `/prototypes` and `/feature-attribution` e
 
 ### Adding an explainability method
 
-1. Create a new method in [prototypes.py](src/prototypes.py) with a method-header similar to this one:
+1. Create a new function in [prototypes.py](src/prototypes.py) with a function-header similar to this one:
    `def create_averaged_prototypes(anomaly: int, anomaly_data: dict, padding: int = 4) -> tuple[list, list, list]:`,
    where...
     1. `anomaly` is the index of the anomaly
@@ -96,10 +96,11 @@ There are two arguments passed to the `/prototypes` and `/feature-attribution` e
    example windows that best fit the given anomaly
 3. Return a tuple containing the two example windows and the anomaly windows, for
    example: `return avg_window, median_window, anomaly_window`
+4. Change the function-call for the `/prototypes`-function in [main.py](main.py) to your new function
 
 ### Adding a feature-attribution method
 
-1. Create a new method in [feature-attribution.py](src/feature_attribution.py) with a method-header similar to this one:
+1. Create a new function in [feature-attribution.py](src/feature_attribution.py) with a function-header similar to this one:
    `def calculate_feature_attribution(anomaly: int, anomaly_data: dict) -> list[float]:`,
    where...
     1. `anomaly` is the index of the anomaly
@@ -109,6 +110,7 @@ There are two arguments passed to the `/prototypes` and `/feature-attribution` e
    changes, e.g. to the anomaly detection service and its API.
 3. Return the list of percentages of attributions values to the given features. The order of the list should represent
    the order of the features.
+4. Change the function-call for the `/feature-attribution`-function in [main.py](main.py) to your new function
 
 
 Copyright © ADEPT ML, TU Dortmund 2023
