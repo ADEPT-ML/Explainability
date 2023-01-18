@@ -58,6 +58,5 @@ class ExplainDagmmByUsingSHAP:
         scores = scores.abs()
         scores.loc['colsum'] = scores.apply(lambda x: x.sum())
         res = scores.iloc[0, :] / scores.iloc[0, :].sum()
-        res = res.tolist()
 
         return res
