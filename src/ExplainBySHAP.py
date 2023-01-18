@@ -52,12 +52,12 @@ class ExplainDagmmByUsingSHAP:
         explainer = ShapTimeseries(
             training_data=Timeseries.from_pd(train_df),
             predict_function=self.detector,
-            mode="anomaly_detection"
         )
 
         explanations, scores = explainer.explain(test_x, nsamples=100)
         scores = scores.abs()
         scores.loc['colsum'] = scores.apply(lambda x: x.sum())
         res = scores.iloc[0, :] / scores.iloc[0, :].sum()
+        res = res.tolist()
 
         return res
