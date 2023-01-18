@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 import requests
-from omnixai.data.timeseries import Timeseries
+from .timeseries import Timeseries
 from .shap import ShapTimeseries
 
 
