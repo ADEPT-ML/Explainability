@@ -1,7 +1,7 @@
 """Contains all functions related to the feature attribution"""
 import pandas as pd
 
-from . import ExplainDagmmByUsingSHAP
+from . import ExplainBySHAP
 
 def calculate_very_basic_feature_attribution(anomaly: int, anomaly_data: dict) -> list[float]:
     """Calculates a feature attribution based on the specified anomaly and the output of the anomaly detection.
@@ -148,7 +148,7 @@ def calculate_shap_feature_attribution(anomaly: int, anomaly_data: dict) -> list
     """
     anomaly_index = anomaly_data["anomalies"][anomaly]["index"]
     data = pd.DataFrame(anomaly_data["dataframe"])
-    explain_model = ExplainDagmmByUsingSHAP(anomaly_index=anomaly_index, data=data, anomaly_data=anomaly_data)
+    explain_model = ExplainBySHAP(anomaly_index=anomaly_index, data=data, anomaly_data=anomaly_data)
 
     # Results
     result = explain_model.explain()
