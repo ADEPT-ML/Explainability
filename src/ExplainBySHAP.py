@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import requests
 from omnixai.data.timeseries import Timeseries
-from src.shap import ShapTimeseries
+from .shap import ShapTimeseries
 
 
 class ExplainDagmmByUsingSHAP:
