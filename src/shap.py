@@ -1,7 +1,7 @@
 import shap
 import numpy as np
 import pandas as pd
-from omnixai.data.timeseries import Timeseries
+from .timeseries import Timeseries
 
 
 class ShapTimeseries():
