@@ -1,8 +1,6 @@
 import shap
-import random
 import numpy as np
 import pandas as pd
-from typing import Callable
 from omnixai.data.timeseries import Timeseries
 
 
@@ -15,7 +13,7 @@ class ShapTimeseries():
     def __init__(
             self,
             training_data: Timeseries,
-            predict_function: Callable,
+            predict_function,
     ):
         """
         :param training_data: The data used to initialize the explainer.
